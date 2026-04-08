@@ -4,309 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سديم | Nebula Dining</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;800;900&display=swap" rel="stylesheet">
-    
     <style>
-        /* التنسيقات الأساسية والحركات السحرية */
-        * { scroll-behavior: smooth; box-sizing: border-box; }
-        body { 
-            background-color: #060412; 
-            color: white; 
-            font-family: 'Tajawal', sans-serif; 
-            margin: 0;
-            overflow-x: hidden;
-        }
-        
-        /* تأثير السديم في الخلفية */
-        .nebula-bg {
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(201, 169, 110, 0.1) 0%, transparent 40%),
-                linear-gradient(to bottom, #060412, #0d0820);
-            min-height: 100vh;
-        }
-
-        /* تدرج الذهب الخاص بالشعار والنصوص الكبيرة */
-        .gold-text {
-            background: linear-gradient(to bottom, #E8D5B0 0%, #C9A96E 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* حركة النجوم */
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: twinkle var(--duration) infinite ease-in-out;
-        }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        /* دوران الحلقات حول الشعار */
-        .orbit {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            border: 1px solid rgba(201, 169, 110, 0.1);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            animation: rotate var(--rev) linear infinite;
-            pointer-events: none;
-        }
-        @keyframes rotate {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        /* انسيابية ظهور العناصر عند السكرول */
-        .reveal {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* تعديل مظهر السكرول بار */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #060412; }
-        ::-webkit-scrollbar-thumb { background: #C9A96E; border-radius: 10px; }
-
-        /* تنسيق البطاقات الزجاجية */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(201, 169, 110, 0.1);
-            backdrop-filter: blur(10px);
-            transition: all 0.5s ease-out;
-        }
-        .glass-card:hover {
-            border-color: rgba(201, 169, 110, 0.5);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        /* خط السكرول العمودي في الهيرو */
-        .scroll-line {
-            width: 1px;
-            height: 80px;
-            background: linear-gradient(to bottom, #C9A96E, transparent);
-            margin-top: 20px;
-            opacity: 0.4;
-        }
-
-        /* --- تنسيق العلامة المائية الكونية --- */
-        .cosmic-watermark {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1000;
-            background: rgba(6, 4, 18, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(201, 169, 110, 0.2);
-            border-radius: 100px;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            opacity: 0.6;
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            pointer-events: auto; /* السماح بالتفاعل معها عند الرغبة في إخفائها */
-        }
-        .cosmic-watermark:hover {
-            opacity: 1;
-            transform: translateY(-5px) scale(1.02);
-            border-color: rgba(201, 169, 110, 0.8);
-            box-shadow: 0 10px 40px rgba(201, 169, 110, 0.2);
-        }
-        .watermark-icon {
-            font-size: 18px;
-            color: #C9A96E;
-            animation: pulse-gold 2s infinite ease-in-out;
-        }
-        .watermark-text {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-        }
-        .watermark-main {
-            font-size: 11px;
-            font-weight: 800;
-            color: rgba(255, 255, 255, 0.9);
-            tracking-[0.05em];
-        }
-        .watermark-sub {
-            font-size: 9px;
-            color: rgba(201, 169, 110, 0.6);
-            tracking-[0.1em];
-            font-weight: 400;
-        }
-        @keyframes pulse-gold {
-            0%, 100% { opacity: 0.5; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.1); }
-        }
+        * { scroll-behavior: smooth; }
+        body { background-color: #060412; color: white; font-family: 'Tajawal', sans-serif; overflow-x: hidden; }
+        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.3; animation: twinkle var(--dur) infinite ease-in-out; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+        .gold-text { background: linear-gradient(to bottom, #E8D5B0 0%, #C9A96E 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .reveal { opacity: 0; transform: translateY(50px); transition: all 1s cubic-bezier(0.17, 0.55, 0.55, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .glass-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(201, 169, 110, 0.1); backdrop-filter: blur(10px); }
+        /* العلامة المائية */
+        .watermark { position: fixed; bottom: 20px; left: 20px; z-index: 999; opacity: 0.4; font-size: 10px; color: #C9A96E; letter-spacing: 2px; pointer-events: none; }
     </style>
 </head>
 <body>
     <div id="root"></div>
-
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect } = React;
 
-        // --- المكونات الفرعية ---
-
-        const BackgroundStars = () => {
+        const StarField = () => {
             const stars = Array.from({ length: 80 }).map((_, i) => ({
-                id: i,
-                left: Math.random() * 100 + '%',
-                top: Math.random() * 100 + '%',
-                size: Math.random() * 2 + 1 + 'px',
-                duration: 2 + Math.random() * 4 + 's'
+                id: i, left: Math.random() * 100 + '%', top: Math.random() * 100 + '%',
+                size: Math.random() * 2 + 1 + 'px', dur: 2 + Math.random() * 4 + 's'
             }));
-            return (
-                <div className="fixed inset-0 pointer-events-none z-0">
-                    {stars.map(s => (
-                        <div key={s.id} className="star" style={{
-                            left: s.left, top: s.top, width: s.size, height: s.size, '--duration': s.duration
-                        }}></div>
-                    ))}
-                </div>
-            );
+            return <div className="fixed inset-0 pointer-events-none">{stars.map(s => <div key={s.id} className="star" style={{left: s.left, top: s.top, width: s.size, height: s.size, '--dur': s.dur}}></div>)}</div>;
         };
-
-        const MENU_ITEMS = [
-            { id: 1, name: "تغريدة الصحراء", en: "Desert Whisper", price: "٢٨٥", desc: "فيليه جمل مُعتَّق في نبيذ التمر، يُرافقه رغوة الزعفران וחصاة الملح الوردي.", color: "#C9A96E", icon: "✦" },
-            { id: 2, name: "سيمفونية التوابل", en: "Spice Symphony", price: "٣٤٠", desc: "روبيان هايلاند المُدخَّن، في حضن صلصة الكاري الأزرق النادر ورقائق الذهب عيار 24.", color: "#8B5CF6", icon: "◈" },
-            { id: 3, name: "لحظة الانهيار", en: "The Collapse", price: "١٩٠", desc: "كرواسان شوكولاتة داكنة 90% يذوب أمامك، تنبثق منه كريمة الفانيلا بوربون.", color: "#E11D48", icon: "⬡" }
-        ];
-
-        // --- مكوّن العلامة المائية الكونية ---
-        const CosmicWatermark = () => {
-            return (
-                <div className="cosmic-watermark" title="تم التطوير بواسطة شركة سديم (Nebula Co.)">
-                    <div className="watermark-icon">✦</div>
-                    <div className="watermark-text">
-                        <span className="watermark-main">تطوير وتصميم: Nebula Co.</span>
-                        <span className="watermark-sub">© جميع الحقوق محفوظة — 2026</span>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- المكون الرئيسي ---
 
         function App() {
-            const [scrolled, setScrolled] = useState(false);
-
             useEffect(() => {
-                const handleScroll = () => setScrolled(window.scrollY > 50);
-                window.addEventListener('scroll', handleScroll);
-                
-                // مراقب العناصر لتفعيل الأنيميشن عند السكرول
                 const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('active');
-                        }
-                    });
+                    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
                 }, { threshold: 0.1 });
-
                 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-                return () => {
-                    window.removeEventListener('scroll', handleScroll);
-                    observer.disconnect();
-                };
             }, []);
 
             return (
-                <div className="nebula-bg min-h-screen relative">
-                    <BackgroundStars />
-                    <CosmicWatermark /> {/* إضافة العلامة المائية هنا */}
+                <div className="relative">
+                    <StarField />
+                    <div className="watermark uppercase tracking-widest italic">Designed by Nebula Co.</div>
                     
-                    {/* الملاحة / Navbar */}
-                    <nav className={`fixed top-0 w-full z-50 transition-all duration-700 px-6 md:px-16 py-5 flex justify-between items-center ${scrolled ? 'bg-[#060412]/90 backdrop-blur-xl border-b border-[#C9A96E]/20' : 'bg-transparent'}`}>
-                        <div className="flex flex-col">
-                            <span className="gold-text font-black text-3xl tracking-tighter italic">سديم</span>
-                            <span className="text-[10px] tracking-[0.4em] opacity-40 uppercase font-serif">Nebula Dining</span>
-                        </div>
-                        <div className="hidden md:flex gap-12 text-[11px] font-bold tracking-[0.2em] opacity-60">
-                            <a href="#menu" className="hover:text-[#C9A96E] transition-all">القائمة</a>
-                            <a href="#experience" className="hover:text-[#C9A96E] transition-all">تجربتنا</a>
-                            <a href="#reservation" className="hover:text-[#C9A96E] transition-all">احجز الآن</a>
-                        </div>
-                        <a href="#reservation" className="bg-[#C9A96E] text-[#060412] px-8 py-3 text-xs font-black uppercase hover:bg-white transition-all shadow-xl shadow-[#C9A96E]/10">Reserve</a>
-                    </nav>
-
-                    {/* قسم الواجهة / Hero */}
-                    <header className="relative h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden">
-                        <div className="orbit w-[300px] h-[300px] md:w-[700px] md:h-[700px]" style={{'--rev': '50s'}}></div>
-                        <div className="orbit w-[250px] h-[250px] md:w-[500px] md:h-[500px]" style={{'--rev': '35s', animationDirection: 'reverse'}}></div>
-                        
-                        <div className="z-10 reveal active">
-                            <span className="text-[#C9A96E] text-[10px] tracking-[0.8em] mb-8 block opacity-60 uppercase">Riyadh's Finest Culinary Art</span>
-                            <h1 className="text-[80px] md:text-[160px] font-black leading-none mb-6 gold-text italic">سديم</h1>
-                            <p className="text-sm md:text-xl font-light opacity-50 max-w-2xl mx-auto leading-loose mb-12 tracking-wide font-serif">NEBULA DINING</p>
+                    {/* Hero Section */}
+                    <header className="h-screen flex flex-col items-center justify-center text-center px-6">
+                        <div className="reveal active">
+                            <div className="text-[#C9A96E] text-[11px] tracking-[0.5em] mb-8 uppercase font-bold">Nebula Dining — Riyadh</div>
+                            <h1 className="text-[100px] md:text-[180px] font-black mb-8 gold-text italic leading-none">سديم</h1>
+                            <h2 className="text-2xl md:text-4xl font-light mb-12">حيثُ يلتقي الكون بطبقك</h2>
                             <div className="flex gap-6 justify-center">
-                                <a href="#menu" className="bg-[#C9A96E] text-[#060412] px-12 py-5 font-black text-xs hover:scale-105 transition-all">استكشف القائمة</a>
-                                <a href="#reservation" className="border border-white/20 px-12 py-5 font-bold text-xs hover:bg-white/5 transition-all">احجز طاولتك</a>
-                            </div>
-                            <div className="flex flex-col items-center mt-20 opacity-30">
-                                <span className="text-[9px] tracking-[0.5em] uppercase">Scroll</span>
-                                <div className="scroll-line"></div>
+                                <a href="#reservation" className="bg-[#C9A96E] text-[#060412] px-12 py-4 font-black text-xs uppercase shadow-xl shadow-[#C9A96E]/20">احجز الآن</a>
                             </div>
                         </div>
                     </header>
 
-                    {/* قسم القائمة / Menu */}
-                    <section id="menu" className="py-40 px-6 max-w-7xl mx-auto relative z-10">
-                        <div className="text-center mb-24 reveal">
-                            <h2 className="text-5xl md:text-7xl font-black mb-6">قائمة السديم</h2>
-                            <div className="w-24 h-px bg-[#C9A96E] mx-auto opacity-40"></div>
-                        </div>
-                        <div className="grid lg:grid-cols-3 gap-10">
-                            {MENU_ITEMS.map((item, index) => (
-                                <div key={item.id} className="reveal glass-card p-12 hover:border-[#C9A96E]/40" style={{transitionDelay: `${index * 100}ms`}}>
-                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-20 transition-opacity text-6xl font-black">{item.id}</div>
-                                    <div className="text-4xl mb-10" style={{color: item.color}}>{item.icon}</div>
-                                    <h3 className="text-3xl font-bold mb-1">{item.name}</h3>
-                                    <p className="text-[11px] opacity-40 font-serif mb-6 tracking-[0.2em] uppercase">{item.en}</p>
-                                    <p className="text-sm opacity-50 leading-loose mb-12 h-24">{item.desc}</p>
-                                    <div className="text-4xl font-black italic gold-text">{item.price} <span className="text-xs font-normal opacity-30 text-white">ر.س</span></div>
+                    {/* Stats Section - الأرقام اللي كانت ناقصة */}
+                    <section id="philosophy" className="py-40 bg-[#040310] border-y border-white/5 relative z-10">
+                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-32 items-center">
+                            <div className="reveal">
+                                <h2 className="text-6xl md:text-8xl font-black mb-12 italic leading-tight">ليس مجرد طعام.<br/>إنه فنٌّ يُمارس.</h2>
+                                <div className="grid grid-cols-2 gap-8">
+                                    <div className="glass-card p-10 text-center">
+                                        <div className="text-5xl font-black gold-text mb-3 tracking-tighter">98%</div>
+                                        <div className="text-[10px] opacity-40 uppercase tracking-[0.3em]">معدل رضا الضيوف</div>
+                                    </div>
+                                    <div className="glass-card p-10 text-center">
+                                        <div className="text-5xl font-black gold-text mb-3 tracking-tighter">2019</div>
+                                        <div className="text-[10px] opacity-40 uppercase tracking-[0.3em]">عام التأسيس</div>
+                                    </div>
+                                    <div className="glass-card p-10 text-center">
+                                        <div className="text-5xl font-black gold-text mb-3 tracking-tighter">3</div>
+                                        <div className="text-[10px] opacity-40 uppercase tracking-[0.3em]">جوائز دولية</div>
+                                    </div>
+                                    <div className="glass-card p-10 text-center">
+                                        <div className="text-5xl font-black gold-text mb-3 tracking-tighter">12</div>
+                                        <div className="text-[10px] opacity-40 uppercase tracking-[0.3em]">شيف عالمي</div>
+                                    </div>
                                 </div>
-                            ))}
+                            </div>
+                            <div className="reveal glass-card aspect-[3/4] hidden md:flex items-center justify-center">
+                                <span className="gold-text text-9xl font-black italic">S</span>
+                            </div>
                         </div>
                     </section>
 
-                    {/* قسم الحجز / Reservation */}
-                    <section id="reservation" className="py-40 px-6 max-w-4xl mx-auto text-center relative z-10">
-                        <div className="mb-20 reveal">
-                            <h2 className="text-5xl font-black mb-4 italic gold-text">احجز رحلتك</h2>
-                            <p className="opacity-40 tracking-widest uppercase text-xs">Limited seating available nightly</p>
+                    {/* Testimonials */}
+                    <section className="py-40 px-6 max-w-6xl mx-auto text-center">
+                        <h2 className="text-5xl font-black mb-20 reveal italic">قالوا عن سديم</h2>
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <div className="reveal glass-card p-12 text-right">
+                                <p className="text-xl italic opacity-80 mb-10">"كل لقمة هي قصيدة تحكي قصة عبر المجرات."</p>
+                                <div className="font-bold text-[#C9A96E]">نورة المنصوري</div>
+                                <div className="text-[10px] opacity-40 uppercase tracking-widest">Food Critic</div>
+                            </div>
+                            <div className="reveal glass-card p-12 text-right" style={{transitionDelay: '200ms'}}>
+                                <p className="text-xl italic opacity-80 mb-10">"المكان ليس مجرد مطعم، بل هو رسالة فخامة."</p>
+                                <div className="font-bold text-[#C9A96E]">د. فيصل الرشيدي</div>
+                                <div className="text-[10px] opacity-40 uppercase tracking-widest">Entrepreneur</div>
+                            </div>
                         </div>
-                        <form className="reveal glass-card p-12 grid grid-cols-1 md:grid-cols-2 gap-8 text-right bg-white/[0.02] p-12 border border-white/5 backdrop-blur-md">
-                            <input type="text" placeholder="الاسم" className="bg-transparent border-b border-white/10 p-4 focus:border-[#C9A96E] outline-none transition-all text-sm"/>
-                            <input type="tel" placeholder="الجوال" className="bg-transparent border-b border-white/10 p-4 focus:border-[#C9A96E] outline-none transition-all text-sm text-left"/>
-                            <button type="button" className="md:col-span-2 mt-8 bg-gradient-to-r from-[#C9A96E] to-[#8B5CF6] text-[#060412] p-6 font-black uppercase tracking-[0.3em] hover:scale-[1.02] transition-all shadow-2xl shadow-[#C9A96E]/20">Confirm Reservation ✦</button>
-                        </form>
                     </section>
 
-                    {/* التذييل / Footer */}
-                    <footer className="py-20 border-t border-white/5 text-center bg-[#03020d] relative z-10">
-                        <div className="gold-text font-black text-3xl mb-4">سديم</div>
-                        <p className="text-[10px] opacity-20 max-w-xs mx-auto leading-loose">
-                            © ٢٠٢٦ سديم | جميع الحقوق محفوظة. تم تصميمه ليكون الوجهة الأولى للنخبة في الرياض.
-                        </p>
+                    {/* Reservation Form */}
+                    <section id="reservation" className="py-40 px-6 max-w-4xl mx-auto">
+                        <div className="reveal glass-card p-16">
+                            <h2 className="text-5xl font-black mb-12 text-center gold-text italic">احجز رحلتك</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <input type="text" placeholder="الاسم" className="bg-transparent border-b border-white/10 py-4 outline-none focus:border-[#C9A96E]"/>
+                                <input type="tel" placeholder="رقم الجوال" className="bg-transparent border-b border-white/10 py-4 outline-none focus:border-[#C9A96E] text-left"/>
+                                <button className="md:col-span-2 bg-[#C9A96E] text-[#060412] py-6 font-black uppercase tracking-[0.5em] hover:bg-white transition-all text-xs mt-10">Confirm Reservation</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <footer className="py-20 text-center opacity-20 text-[10px] tracking-[0.5em] uppercase">
+                        © 2026 SADEEM NEBULA — THE ART OF DINING
                     </footer>
                 </div>
             );
