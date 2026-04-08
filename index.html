@@ -3,18 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سديم | Nebula Dining - تجربة طعام استثنائية</title>
+    <title>سديم | Nebula Dining</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;800;900&family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        * { scroll-behavior: smooth; }
-        body { background-color: #060412; color: white; font-family: 'Tajawal', sans-serif; overflow-x: hidden; }
-        .cosmic-bg { background: radial-gradient(circle at top, rgba(139,92,246,0.15), transparent), linear-gradient(to bottom, #060412, #0d0820); }
-        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        .star { animation: twinkle var(--dur) ease-in-out infinite; }
+        * { scroll-behavior: smooth; cursor: default; }
+        body { background-color: #060412; color: #fff; font-family: 'Tajawal', sans-serif; overflow-x: hidden; }
+        
+        /* تأثير النجوم المتحركة */
+        .star {
+            position: absolute; border-radius: 50%; background: white;
+            animation: twinkle var(--dur) ease-in-out infinite; opacity: 0.3;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+        
+        /* تدرج السديم */
+        .nebula-gradient {
+            background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.18) 0%, transparent 70%), 
+                        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(201,169,110,0.12) 0%, transparent 60%);
+        }
+
+        /* دوران الحلقات المزيّنة */
+        .orbit {
+            position: absolute; top: 50%; left: 50%; border: 1px solid rgba(201,169,110,0.1);
+            border-radius: 50%; transform: translate(-50%, -50%); animation: rotate var(--rev) linear infinite;
+        }
+        @keyframes rotate { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -23,124 +41,101 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const MENU_ITEMS = [
-            { id: 1, name: "تغريدة الصحراء", nameEn: "Desert Whisper", price: "٢٨٥", desc: "فيليه جمل مُعتَّق في نبيذ التمر، يُرافقه رغوة الزعفران الفارسي وحصاة الملح الوردي.", color: "#C9A96E", icon: "✦" },
-            { id: 2, name: "سيمفونية التوابل", nameEn: "Spice Symphony", price: "٣٤٠", desc: "روبيان هايلاند المُدخَّن بعود العرعر، في حضن صلصة الكاري الأزرق النادر ورقائق الذهب.", color: "#8B5CF6", icon: "◈" },
-            { id: 3, name: "لحظة الانهيار", nameEn: "The Collapse", price: "١٩٠", desc: "كرواسان شوكولاتة داكنة ٩٠٪ يذوب أمامك، تنبثق منه كريمة الفانيلا بوربون وعسل جبال الأطلس.", color: "#E11D48", icon: "⬡" }
-        ];
+        // مكون خلفية النجوم
+        const StarField = () => {
+            const stars = Array.from({ length: 50 }).map((_, i) => ({
+                id: i, left: Math.random() * 100, top: Math.random() * 100,
+                size: Math.random() * 2 + 1, dur: 2 + Math.random() * 3
+            }));
+            return (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    {stars.map(s => (
+                        <div key={s.id} className="star" style={{
+                            left: `${s.left}%`, top: `${s.top}%`,
+                            width: `${s.size}px`, height: `${s.size}px`,
+                            '--dur': `${s.dur}s`
+                        }} />
+                    ))}
+                </div>
+            );
+        };
 
-        const TESTIMONIALS = [
-            { name: "نورة المنصوري", title: "ناقدة طعام", text: "لم أشهد مطعمًا يُوازن بين الشعر والمذاق كما يفعل سديم. كل لقمة هي قصيدة تحكي قصة.", avatar: "ن" },
-            { name: "د. فيصل الرشيدي", title: "رجل أعمال", text: "المكان ليس مجرد مطعم، بل هو رسالة فخامة. طاولتي كانت قاعة المجلس الأكثر تميزاً.", avatar: "ف" }
+        const MENU_ITEMS = [
+            { id: 1, name: "تغريدة الصحراء", nameEn: "Desert Whisper", price: "٢٨٥", desc: "فيليه جمل مُعتَّق في نبيذ التمر، يُرافقه رغوة الزعفران الفارسي وحصاة الملح الوردي.", color: "#C9A96E", icon: "✦", tag: "الأكثر طلباً" },
+            { id: 2, name: "سيمفونية التوابل", nameEn: "Spice Symphony", price: "٣٤٠", desc: "روبيان هايلاند المُدخَّن بعود العرعر، في حضن صلصة الكاري الأزرق النادر ورقائق الذهب.", color: "#8B5CF6", icon: "◈", tag: "طبق الموسم" },
+            { id: 3, name: "لحظة الانهيار", nameEn: "The Collapse", price: "١٩٠", desc: "كرواسان شوكولاتة داكنة ٩٠٪ يذوب أمامك، تنبثق منه كريمة الفانيلا بوربون وعسل جبال الأطلس.", color: "#E11D48", icon: "⬡", tag: "حصري ليلاً" }
         ];
 
         function App() {
             const [scrolled, setScrolled] = useState(false);
             useEffect(() => {
-                const handleScroll = () => setScrolled(window.scrollY > 50);
+                const handleScroll = () => setScrolled(window.scrollY > 60);
                 window.addEventListener('scroll', handleScroll);
                 return () => window.removeEventListener('scroll', handleScroll);
             }, []);
 
             return (
-                <div className="cosmic-bg min-h-screen">
-                    {/* Navigation */}
-                    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 px-8 py-4 flex justify-between items-center ${scrolled ? 'bg-[#060412]/90 backdrop-blur-md border-b border-[#C9A96E]/20' : 'bg-transparent'}`}>
-                        <div className="flex flex-col items-start">
-                            <span className="text-[#C9A96E] font-black text-2xl tracking-tighter">سديم</span>
-                            <span className="text-[8px] tracking-[0.3em] opacity-50 uppercase font-serif">Nebula Dining</span>
+                <div className="relative min-h-screen nebula-gradient">
+                    <StarField />
+                    
+                    {/* Navbar */}
+                    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 px-6 md:px-12 py-4 flex justify-between items-center ${scrolled ? 'bg-[#060412]/95 backdrop-blur-xl border-b border-[#C9A96E]/20' : 'bg-transparent'}`}>
+                        <div className="flex flex-col">
+                            <span className="text-[#C9A96E] font-black text-2xl tracking-tighter italic">سديم</span>
+                            <span className="text-[9px] tracking-[0.3em] opacity-40 font-serif">NEBULA DINING</span>
                         </div>
-                        <div className="hidden md:flex gap-8 text-xs font-bold opacity-70">
-                            <a href="#menu" className="hover:text-[#C9A96E] transition-colors">القائمة</a>
-                            <a href="#experience" className="hover:text-[#C9A96E] transition-colors">تجربتنا</a>
-                            <a href="#testimonials" className="hover:text-[#C9A96E] transition-colors">آراء الضيوف</a>
+                        <div className="hidden md:flex gap-10 text-[11px] font-bold tracking-widest opacity-60">
+                            {['القائمة', 'تجربتنا', 'آراء الضيوف'].map(link => (
+                                <a key={link} href={`#${link}`} className="hover:text-[#C9A96E] transition-colors">{link}</a>
+                            ))}
                         </div>
-                        <a href="#reservation" className="bg-[#C9A96E] text-[#060412] px-6 py-2 text-xs font-black rounded-sm hover:bg-white transition-all shadow-lg shadow-[#C9A96E]/20">احجز الآن</a>
+                        <a href="#reservation" className="bg-[#C9A96E] text-[#060412] px-7 py-2.5 text-xs font-black hover:bg-white transition-all shadow-lg shadow-[#C9A96E]/10">احجز الآن</a>
                     </nav>
 
                     {/* Hero Section */}
-                    <header className="h-screen flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
-                        <div className="z-10 animate-fade-in-up">
-                            <span className="text-[#C9A96E] text-xs tracking-[0.5em] mb-6 block opacity-80 uppercase">أهلاً بكم في عالم المذاق الرفيع</span>
-                            <h1 className="text-7xl md:text-[120px] font-black leading-none mb-4 bg-gradient-to-b from-white via-[#C9A96E] to-[#8B5CF6] bg-clip-text text-transparent italic">سديم</h1>
-                            <p className="text-lg md:text-2xl font-light opacity-60 max-w-2xl mx-auto leading-relaxed">حيث يلتقي الكون بطبقك، في رحلة حسية تتجاوز حدود المألوف.</p>
-                            <div className="mt-12 flex gap-4 justify-center">
-                                <a href="#menu" className="border border-[#C9A96E]/40 px-8 py-3 rounded-sm hover:bg-[#C9A96E]/10 transition-all text-sm">استكشف القائمة</a>
+                    <header className="relative h-screen flex flex-col items-center justify-center text-center px-4">
+                        <div className="orbit w-[300px] h-[300px] md:w-[600px] md:h-[600px]" style={{'--rev': '40s'}}></div>
+                        <div className="orbit w-[200px] h-[200px] md:w-[450px] md:h-[450px]" style={{'--rev': '30s', animationDirection: 'reverse'}}></div>
+                        
+                        <div className="z-10 mt-10">
+                            <span className="text-[#C9A96E] text-[10px] tracking-[0.6em] mb-8 block opacity-70 uppercase animate-pulse">تجربة طعام خارج حدود المألوف</span>
+                            <h1 className="text-8xl md:text-[140px] font-black mb-4 bg-gradient-to-b from-white via-[#E8D5B0] to-[#C9A96E] bg-clip-text text-transparent italic leading-none">سديم</h1>
+                            <p className="text-sm md:text-xl font-light opacity-50 max-w-2xl mx-auto leading-relaxed font-serif tracking-widest mb-12">RIYADH — LUXURY DINING</p>
+                            <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+                                <a href="#menu" className="bg-[#C9A96E] text-[#060412] px-10 py-4 font-black text-sm hover:scale-105 transition-transform">استكشف القائمة</a>
+                                <a href="#experience" className="border border-white/20 px-10 py-4 font-bold text-sm hover:bg-white/5 transition-all">فلسفتنا</a>
                             </div>
                         </div>
                     </header>
 
                     {/* Menu Section */}
-                    <section id="menu" className="py-32 px-8 max-w-7xl mx-auto">
-                        <div className="text-center mb-20">
-                            <h2 className="text-4xl md:text-6xl font-black mb-4 text-white">طعامٌ يُروى عنه</h2>
-                            <div className="w-20 h-1 bg-[#C9A96E] mx-auto opacity-30"></div>
+                    <section id="menu" className="py-40 px-6 max-w-7xl mx-auto relative">
+                        <div className="text-center mb-24">
+                            <h2 className="text-5xl md:text-7xl font-black mb-6">قائمة سديم</h2>
+                            <p className="opacity-40 text-sm tracking-[.2em]">ابتكارات حصرية لا تُقدّم إلا تحت سقفنا</p>
                         </div>
-                        <div className="grid md:grid-cols-3 gap-12">
+                        <div className="grid lg:grid-cols-3 gap-8">
                             {MENU_ITEMS.map(item => (
-                                <div key={item.id} className="group relative p-10 bg-white/5 border border-white/10 rounded-lg hover:bg-white/[0.08] hover:border-[#C9A96E]/40 transition-all duration-500">
-                                    <span className="text-4xl mb-6 block" style={{color: item.color}}>{item.icon}</span>
-                                    <h3 className="text-2xl font-bold mb-2 group-hover:text-[#C9A96E] transition-colors">{item.name}</h3>
-                                    <p className="text-[10px] tracking-widest opacity-40 uppercase mb-4 font-serif">{item.nameEn}</p>
-                                    <p className="text-sm opacity-60 leading-loose mb-8 h-20">{item.desc}</p>
-                                    <div className="text-3xl font-black" style={{color: item.color}}>{item.price} <span className="text-xs opacity-40">ر.س</span></div>
+                                <div key={item.id} className="group p-12 bg-white/[0.02] border border-white/5 hover:border-[#C9A96E]/30 transition-all duration-700 relative overflow-hidden backdrop-blur-sm">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity text-5xl italic">{item.id}</div>
+                                    <div className="text-4xl mb-8" style={{color: item.color}}>{item.icon}</div>
+                                    <span className="text-[10px] text-[#C9A96E] border border-[#C9A96E]/30 px-3 py-1 mb-4 inline-block">{item.tag}</span>
+                                    <h3 className="text-3xl font-bold mb-1">{item.name}</h3>
+                                    <p className="text-[10px] opacity-40 font-serif mb-6 tracking-widest uppercase">{item.nameEn}</p>
+                                    <p className="text-sm opacity-60 leading-relaxed mb-10 h-24">{item.desc}</p>
+                                    <div className="text-4xl font-black italic" style={{color: item.color}}>{item.price} <span className="text-xs font-normal opacity-30">ر.س</span></div>
                                 </div>
                             ))}
                         </div>
                     </section>
 
-                    {/* Experience Section */}
-                    <section id="experience" className="py-32 bg-[#03020d] border-y border-white/5 px-8">
-                        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-20 items-center">
-                            <div>
-                                <span className="text-[#C9A96E] text-xs tracking-widest block mb-4 uppercase">فلسفتنا</span>
-                                <h2 className="text-4xl md:text-5xl font-black mb-6 leading-tight">ليس مجرد طعام.<br/>إنه فنٌّ يُمارس بحب.</h2>
-                                <p className="opacity-50 leading-loose mb-8">في سديم، نؤمن أن الوجبة ليست مجرد غذاء، بل هي تجربة مسرحية تبدأ من اختيار المكون النادر وتنتهي بطريقة تقديمه على طاولتك بلمسة فنية تحاكي جمال المجرات.</p>
-                                <div className="grid grid-cols-2 gap-8">
-                                    <div><div className="text-3xl font-bold text-[#C9A96E]">١٢</div><div className="text-xs opacity-40">شيف عالمي</div></div>
-                                    <div><div className="text-3xl font-bold text-[#C9A96E]">٣</div><div className="text-xs opacity-40">جوائز تذوق</div></div>
-                                </div>
-                            </div>
-                            <div className="bg-[#C9A96E]/10 aspect-square rounded-full border border-[#C9A96E]/20 flex items-center justify-center p-12">
-                                <div className="text-center italic opacity-80 text-xl font-serif">"The kitchen is the laboratory of the soul."</div>
-                            </div>
+                    {/* Footer */}
+                    <footer className="py-20 border-t border-white/5 text-center">
+                        <div className="text-[#C9A96E] font-black text-3xl italic mb-4">سديم</div>
+                        <div className="flex justify-center gap-8 opacity-30 text-[10px] font-bold mb-8 tracking-widest uppercase">
+                            <span>Riyadh</span> • <span>920000000</span> • <span>Instagram</span>
                         </div>
-                    </section>
-
-                    {/* Testimonials */}
-                    <section id="testimonials" className="py-32 px-8 max-w-6xl mx-auto">
-                        <div className="grid md:grid-cols-2 gap-8">
-                            {TESTIMONIALS.map((t, i) => (
-                                <div key={i} className="p-12 bg-white/[0.03] border border-white/5 rounded-sm relative">
-                                    <div className="text-5xl absolute top-8 left-8 opacity-10">"</div>
-                                    <p className="text-lg italic opacity-80 leading-relaxed mb-8">{t.text}</p>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C9A96E] to-violet-600 flex items-center justify-center font-bold">{t.avatar}</div>
-                                        <div><div className="font-bold text-sm">{t.name}</div><div className="text-[10px] opacity-40 uppercase">{t.title}</div></div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* Reservation Form */}
-                    <section id="reservation" className="py-32 px-8 max-w-3xl mx-auto text-center">
-                        <h2 className="text-4xl font-black mb-12">احجز طاولتك في سديم</h2>
-                        <form className="grid grid-cols-1 md:grid-cols-2 gap-6 text-right">
-                            <input type="text" placeholder="الاسم الكريم" className="bg-white/5 border border-white/10 p-4 rounded-sm focus:border-[#C9A96E] outline-none transition-all"/>
-                            <input type="tel" placeholder="رقم الجوال" className="bg-white/5 border border-white/10 p-4 rounded-sm focus:border-[#C9A96E] outline-none transition-all"/>
-                            <input type="date" className="bg-white/5 border border-white/10 p-4 rounded-sm focus:border-[#C9A96E] outline-none transition-all text-white/50"/>
-                            <select className="bg-white/5 border border-white/10 p-4 rounded-sm focus:border-[#C9A96E] outline-none transition-all text-white/50">
-                                <option>عدد الضيوف</option><option>٢</option><option>٤</option><option>٦+</option>
-                            </select>
-                            <button type="button" className="md:col-span-2 bg-gradient-to-r from-[#C9A96E] to-[#8B5CF6] text-[#060412] p-5 font-black uppercase tracking-widest hover:scale-[1.02] transition-transform">تأكيد طلب الحجز ✦</button>
-                        </form>
-                    </section>
-
-                    <footer className="py-12 border-t border-white/5 text-center px-8">
-                        <div className="text-[#C9A96E] font-black text-xl mb-4">سديم</div>
-                        <p className="text-[10px] opacity-30 tracking-[0.4em] uppercase mb-8 font-serif">A Culinary Journey Through the Stars</p>
-                        <div className="text-[10px] opacity-20">© ٢٠٢٦ مطعم سديم. صُمم بشغف ليعكس الفخامة السعودية.</div>
+                        <p className="text-[10px] opacity-20">© ٢٠٢٦ سديم | صُممت كقطعة فنية تقنية</p>
                     </footer>
                 </div>
             );
