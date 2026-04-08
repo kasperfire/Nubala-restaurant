@@ -1,933 +1,284 @@
-import { useState, useEffect, useRef } from "react";
-
-// ============================================================
-// NEBULA DINING — سديم | Landing Page
-// Stack: React + Tailwind CSS (inline styles for custom props)
-// Direction: RTL | Language: Arabic
-// Aesthetic: Dark luxury, cosmic, editorial
-// ============================================================
-
-const NAV_LINKS = [
-  { label: "القائمة", href: "#menu" },
-  { label: "تجربتنا", href: "#experience" },
-  { label: "آراء ضيوفنا", href: "#testimonials" },
-  { label: "احجز طاولتك", href: "#reservation" },
-];
-
-const MENU_ITEMS = [
-  {
-    id: 1,
-    name: "تغريدة الصحراء",
-    nameEn: "Desert Whisper",
-    tag: "طبق الموسم",
-    price: "٢٨٥",
-    desc: "فيليه جمل مُعتَّق في نبيذ التمر لاثنتي عشرة ساعة، يُرافقه رغوة الزعفران الفارسي وحصاة الملح الوردي من جبال الهيمالايا — تجربةٌ توقظ حواسَّ لم تعلم بوجودها.",
-    tags: ["خالٍ من الغلوتين", "صحراوي"],
-    icon: "✦",
-    color: "#C9A96E",
-  },
-  {
-    id: 2,
-    name: "سيمفونية التوابل",
-    nameEn: "Spice Symphony",
-    tag: "الأكثر طلبًا",
-    price: "٣٤٠",
-    desc: "تناغمٌ موسيقي على الطبق: روبيان هايلاند المُدخَّن بعود العرعر، في حضن صلصة الكاري الأزرق النادر من مزارع بالي السرية، وتُتوِّجه رقائق الذهب الصالح للأكل.",
-    tags: ["بحري", "نادر"],
-    icon: "◈",
-    color: "#8B5CF6",
-  },
-  {
-    id: 3,
-    name: "لحظة الانهيار",
-    nameEn: "The Collapse",
-    tag: "حصري ليلاً",
-    price: "١٩٠",
-    desc: "كرواسان شوكولاتة داكنة ٩٠٪ يذوب أمامك كلحظة انهيار جليدي مُحكمة التوقيت، تنبثق من داخله كريمة الفانيلا بوربون وعسل جبال الأطلس — فنٌّ يُؤكل.",
-    tags: ["حلوى", "نباتي"],
-    icon: "⬡",
-    color: "#E11D48",
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    name: "نورة المنصوري",
-    title: "ناقدة طعام | أبوظبي",
-    text: "في عشرين عامًا من تناول الطعام في المطاعم الفاخرة حول العالم، لم أشهد مطعمًا يُوازن بين الشعر والمذاق كما يفعل سديم. كل لقمة قصيدة.",
-    stars: 5,
-    avatar: "ن",
-  },
-  {
-    name: "د. فيصل الرشيدي",
-    title: "رجل أعمال | الرياض",
-    text: "عقدتُ اجتماعي الأهم في سديم. لم يكن المطعم ديكورًا فحسب — كان رسالة. طاولتي باتت قاعة المجلس الأفخم التي عرفتها.",
-    stars: 5,
-    avatar: "ف",
-  },
-  {
-    name: "لارا بيضون",
-    title: "مدوّنة ومؤثِّرة | بيروت",
-    text: "صوَّرتُ مئات المطاعم، لكن سديم الوحيد الذي جعلني أضع كاميرتي جانبًا وأعيش اللحظة. الجمال هنا يفوق الوصف.",
-    stars: 5,
-    avatar: "ل",
-  },
-];
-
-// ── Utility ──────────────────────────────────────────────────
-function useInView(threshold = 0.15) {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return [ref, visible];
-}
-
-// ── Components ───────────────────────────────────────────────
-
-function StarRating({ count }) {
-  return (
-    <div style={{ display: "flex", gap: "3px", color: "#C9A96E" }}>
-      {Array.from({ length: count }).map((_, i) => (
-        <span key={i} style={{ fontSize: "14px" }}>★</span>
-      ))}
-    </div>
-  );
-}
-
-function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  return (
-    <nav style={{
-      position: "fixed", top: 0, right: 0, left: 0, zIndex: 100,
-      transition: "all 0.4s ease",
-      background: scrolled ? "rgba(6,4,18,0.95)" : "transparent",
-      backdropFilter: scrolled ? "blur(20px)" : "none",
-      borderBottom: scrolled ? "1px solid rgba(201,169,110,0.15)" : "1px solid transparent",
-      padding: "0 2rem",
-    }}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: "72px" }}>
-        {/* Logo */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-          <span style={{ fontFamily: "'Tajawal', sans-serif", fontSize: "22px", fontWeight: 800, color: "#C9A96E", letterSpacing: "0.05em", lineHeight: 1 }}>سديم</span>
-          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "10px", color: "rgba(201,169,110,0.6)", letterSpacing: "0.3em", textTransform: "uppercase" }}>Nebula Dining</span>
-        </div>
-
-        {/* Desktop nav */}
-        <div style={{ display: "flex", gap: "2.5rem", alignItems: "center" }} className="desktop-nav">
-          {NAV_LINKS.map(l => (
-            <a key={l.href} href={l.href} style={{
-              fontFamily: "'Tajawal', sans-serif", fontSize: "15px", color: "rgba(255,255,255,0.75)",
-              textDecoration: "none", transition: "color 0.3s", letterSpacing: "0.03em"
-            }}
-              onMouseEnter={e => e.target.style.color = "#C9A96E"}
-              onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.75)"}
-            >{l.label}</a>
-          ))}
-          <a href="#reservation" style={{
-            fontFamily: "'Tajawal', sans-serif", fontSize: "14px", color: "#060412",
-            background: "#C9A96E", padding: "10px 24px", borderRadius: "2px",
-            textDecoration: "none", fontWeight: 700, letterSpacing: "0.05em",
-            transition: "all 0.3s",
-          }}
-            onMouseEnter={e => { e.target.style.background = "#b8934a"; e.target.style.transform = "translateY(-1px)"; }}
-            onMouseLeave={e => { e.target.style.background = "#C9A96E"; e.target.style.transform = "translateY(0)"; }}
-          >احجز الآن</a>
-        </div>
-
-        {/* Mobile burger */}
-        <button onClick={() => setMenuOpen(!menuOpen)} className="mobile-burger" style={{
-          background: "none", border: "none", color: "#C9A96E", cursor: "pointer", fontSize: "24px", display: "none"
-        }}>☰</button>
-      </div>
-
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div style={{
-          background: "rgba(6,4,18,0.98)", padding: "1.5rem 2rem 2rem",
-          borderTop: "1px solid rgba(201,169,110,0.15)",
-          display: "flex", flexDirection: "column", gap: "1.2rem"
-        }}>
-          {NAV_LINKS.map(l => (
-            <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)} style={{
-              fontFamily: "'Tajawal', sans-serif", fontSize: "18px", color: "rgba(255,255,255,0.85)",
-              textDecoration: "none"
-            }}>{l.label}</a>
-          ))}
-        </div>
-      )}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .desktop-nav { display: none !important; }
-          .mobile-burger { display: block !important; }
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سديم | Nebula Dining - تجربة طعام استثنائية</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;800;900&family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { scroll-behavior: smooth; box-sizing: border-box; }
+        body { 
+            background-color: #060412; 
+            color: white; 
+            font-family: 'Tajawal', sans-serif; 
+            margin: 0;
+            overflow-x: hidden;
         }
-      `}</style>
-    </nav>
-  );
-}
-
-function HeroSection() {
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setLoaded(true), 100); return () => clearTimeout(t); }, []);
-
-  return (
-    <section id="hero" style={{
-      minHeight: "100vh", position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
-      overflow: "hidden",
-    }}>
-      {/* Cosmic background */}
-      <div style={{
-        position: "absolute", inset: 0,
-        background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.18) 0%, transparent 70%), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(201,169,110,0.12) 0%, transparent 60%), linear-gradient(180deg, #060412 0%, #0d0820 50%, #060412 100%)",
-      }} />
-
-      {/* Star field */}
-      <StarField />
-
-      {/* Decorative orbit ring */}
-      <div style={{
-        position: "absolute", top: "50%", left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "700px", height: "700px",
-        borderRadius: "50%",
-        border: "1px solid rgba(201,169,110,0.06)",
-        animation: "rotate 60s linear infinite",
-      }} />
-      <div style={{
-        position: "absolute", top: "50%", left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "500px", height: "500px",
-        borderRadius: "50%",
-        border: "1px solid rgba(139,92,246,0.08)",
-        animation: "rotate 40s linear infinite reverse",
-      }} />
-
-      {/* Content */}
-      <div style={{
-        position: "relative", zIndex: 10, textAlign: "center",
-        maxWidth: "820px", padding: "0 2rem",
-        opacity: loaded ? 1 : 0, transform: loaded ? "translateY(0)" : "translateY(30px)",
-        transition: "all 1.2s cubic-bezier(0.16,1,0.3,1)",
-      }}>
-        <div style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: "clamp(11px, 1.2vw, 13px)",
-          color: "#C9A96E", letterSpacing: "0.45em", textTransform: "uppercase",
-          marginBottom: "2rem", opacity: 0.8,
-          transition: "all 1.4s cubic-bezier(0.16,1,0.3,1) 0.2s",
-          opacity: loaded ? 0.8 : 0,
-        }}>تجربة طعام خارج حدود المألوف</div>
-
-        <h1 style={{
-          fontFamily: "'Tajawal', sans-serif",
-          fontSize: "clamp(52px, 8vw, 110px)",
-          fontWeight: 900,
-          lineHeight: 1.05,
-          margin: "0 0 0.5rem",
-          background: "linear-gradient(135deg, #FFFFFF 0%, #E8D5B0 40%, #C9A96E 70%, #8B5CF6 100%)",
-          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          transition: "all 1.4s cubic-bezier(0.16,1,0.3,1) 0.4s",
-          opacity: loaded ? 1 : 0,
-        }}>سديم</h1>
-
-        <p style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: "clamp(14px, 2vw, 20px)",
-          color: "rgba(232,213,176,0.7)", letterSpacing: "0.3em",
-          marginBottom: "2.5rem",
-          transition: "all 1.4s cubic-bezier(0.16,1,0.3,1) 0.5s",
-          opacity: loaded ? 0.7 : 0,
-        }}>Nebula Dining — Riyadh</p>
-
-        <h2 style={{
-          fontFamily: "'Tajawal', sans-serif",
-          fontSize: "clamp(20px, 3vw, 32px)",
-          fontWeight: 400, lineHeight: 1.7,
-          color: "rgba(255,255,255,0.88)",
-          marginBottom: "1rem", maxWidth: "680px", margin: "0 auto 1.5rem",
-          transition: "all 1.4s cubic-bezier(0.16,1,0.3,1) 0.6s",
-          opacity: loaded ? 0.88 : 0,
-        }}>حيثُ يلتقي الكون بطبقك</h2>
-
-        <p style={{
-          fontFamily: "'Tajawal', sans-serif",
-          fontSize: "clamp(15px, 1.6vw, 19px)",
-          fontWeight: 300, lineHeight: 1.9,
-          color: "rgba(255,255,255,0.55)", maxWidth: "580px", margin: "0 auto 3.5rem",
-          transition: "all 1.4s cubic-bezier(0.16,1,0.3,1) 0.7s",
-          opacity: loaded ? 0.55 : 0,
-        }}>
-          نُقدِّم فلسفة الطعام كما لم تُقدَّم من قبل — حيث كل طبق رحلةٌ إلى مجرة مذاق لا نهاية لها.
-        </p>
-
-        <div style={{
-          display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap",
-          transition: "all 1.4s cubic-bezier(0.16,1,0.3,1) 0.85s",
-          opacity: loaded ? 1 : 0, transform: loaded ? "translateY(0)" : "translateY(20px)",
-        }}>
-          <a href="#reservation" style={{
-            fontFamily: "'Tajawal', sans-serif", fontWeight: 700, fontSize: "16px",
-            color: "#060412", background: "#C9A96E",
-            padding: "16px 40px", borderRadius: "2px", textDecoration: "none",
-            transition: "all 0.3s", display: "inline-block",
-            letterSpacing: "0.05em",
-          }}
-            onMouseEnter={e => { e.target.style.background = "#E8D5B0"; e.target.style.transform = "translateY(-2px)"; }}
-            onMouseLeave={e => { e.target.style.background = "#C9A96E"; e.target.style.transform = "translateY(0)"; }}
-          >احجز تجربتك الآن</a>
-
-          <a href="#menu" style={{
-            fontFamily: "'Tajawal', sans-serif", fontWeight: 600, fontSize: "16px",
-            color: "#C9A96E",
-            padding: "16px 40px", borderRadius: "2px", textDecoration: "none",
-            border: "1px solid rgba(201,169,110,0.35)",
-            transition: "all 0.3s", display: "inline-block",
-            letterSpacing: "0.05em",
-          }}
-            onMouseEnter={e => { e.target.style.borderColor = "#C9A96E"; e.target.style.background = "rgba(201,169,110,0.07)"; }}
-            onMouseLeave={e => { e.target.style.borderColor = "rgba(201,169,110,0.35)"; e.target.style.background = "transparent"; }}
-          >استكشف القائمة</a>
-        </div>
-
-        {/* Scroll hint */}
-        <div style={{
-          marginTop: "5rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px",
-          opacity: loaded ? 0.4 : 0, transition: "opacity 2s 1.5s",
-        }}>
-          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "11px", color: "#C9A96E", letterSpacing: "0.3em" }}>SCROLL</span>
-          <div style={{ width: "1px", height: "50px", background: "linear-gradient(to bottom, #C9A96E, transparent)", animation: "pulse 2s ease-in-out infinite" }} />
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes rotate { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
-        @keyframes pulse { 0%,100% { opacity:0.4; transform:scaleY(1); } 50% { opacity:1; transform:scaleY(1.1); } }
-        @keyframes twinkle { 0%,100% { opacity:0.3; } 50% { opacity:1; } }
-        @keyframes floatUp { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
-      `}</style>
-    </section>
-  );
-}
-
-function StarField() {
-  const stars = Array.from({ length: 80 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 2 + 0.5,
-    delay: Math.random() * 5,
-    dur: 2 + Math.random() * 4,
-  }));
-  return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      {stars.map(s => (
-        <div key={s.id} style={{
-          position: "absolute",
-          left: `${s.x}%`, top: `${s.y}%`,
-          width: `${s.size}px`, height: `${s.size}px`,
-          borderRadius: "50%",
-          background: s.x % 5 === 0 ? "#8B5CF6" : "#C9A96E",
-          animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
-          opacity: 0.3,
-        }} />
-      ))}
-    </div>
-  );
-}
-
-function MenuSection() {
-  const [ref, visible] = useInView();
-  const [active, setActive] = useState(null);
-
-  return (
-    <section id="menu" style={{
-      padding: "clamp(80px, 12vw, 140px) 2rem",
-      background: "linear-gradient(180deg, #060412 0%, #0a0618 50%, #060412 100%)",
-      position: "relative", overflow: "hidden",
-    }}>
-      {/* Decorative blob */}
-      <div style={{
-        position: "absolute", left: "-10%", top: "20%",
-        width: "400px", height: "400px", borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%)",
-        filter: "blur(40px)",
-      }} />
-
-      <div ref={ref} style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        {/* Section header */}
-        <div style={{
-          textAlign: "center", marginBottom: "clamp(3rem, 8vw, 6rem)",
-          opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(30px)",
-          transition: "all 0.9s cubic-bezier(0.16,1,0.3,1)",
-        }}>
-          <span style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "12px", color: "#C9A96E", letterSpacing: "0.45em",
-            display: "block", marginBottom: "1.2rem", opacity: 0.8
-          }}>THE MENU — قائمة سديم</span>
-          <h2 style={{
-            fontFamily: "'Tajawal', sans-serif",
-            fontSize: "clamp(32px, 5vw, 54px)",
-            fontWeight: 800, color: "#fff", margin: "0 0 1.2rem",
-            lineHeight: 1.2,
-          }}>طعامٌ يُروى عنه</h2>
-          <p style={{
-            fontFamily: "'Tajawal', sans-serif",
-            fontSize: "clamp(15px, 1.6vw, 18px)", fontWeight: 300,
-            color: "rgba(255,255,255,0.5)", maxWidth: "500px", margin: "0 auto", lineHeight: 1.9,
-          }}>اخترنا لك ثلاثة أطباق من قلب قائمتنا المتجددة — ابتكارات لا تجدها على أي طاولة أخرى في العالم.</p>
-        </div>
-
-        {/* Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem" }}>
-          {MENU_ITEMS.map((item, idx) => (
-            <div key={item.id}
-              onMouseEnter={() => setActive(item.id)}
-              onMouseLeave={() => setActive(null)}
-              style={{
-                background: active === item.id
-                  ? `linear-gradient(145deg, rgba(${item.id === 1 ? "201,169,110" : item.id === 2 ? "139,92,246" : "225,29,72"},0.08) 0%, rgba(6,4,18,0.9) 100%)`
-                  : "rgba(255,255,255,0.025)",
-                border: `1px solid ${active === item.id ? item.color + "40" : "rgba(255,255,255,0.07)"}`,
-                borderRadius: "4px", padding: "2.5rem",
-                cursor: "default", position: "relative", overflow: "hidden",
-                transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
-                opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(40px)",
-                transitionDelay: `${0.1 + idx * 0.12}s`,
-                backdropFilter: "blur(10px)",
-              }}>
-
-              {/* Icon + tag row */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
-                <span style={{ fontSize: "28px", color: item.color, transition: "transform 0.3s", transform: active === item.id ? "scale(1.2) rotate(15deg)" : "scale(1)" }}>{item.icon}</span>
-                <span style={{
-                  fontFamily: "'Tajawal', sans-serif", fontSize: "11px",
-                  color: item.color, border: `1px solid ${item.color}50`,
-                  padding: "4px 12px", borderRadius: "100px", letterSpacing: "0.05em"
-                }}>{item.tag}</span>
-              </div>
-
-              {/* Name */}
-              <h3 style={{
-                fontFamily: "'Tajawal', sans-serif",
-                fontSize: "clamp(22px, 2.5vw, 28px)", fontWeight: 800,
-                color: "#fff", margin: "0 0 0.3rem", lineHeight: 1.2,
-              }}>{item.name}</h3>
-              <p style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "13px", color: "rgba(201,169,110,0.6)",
-                letterSpacing: "0.2em", margin: "0 0 1.2rem",
-              }}>{item.nameEn}</p>
-
-              <p style={{
-                fontFamily: "'Tajawal', sans-serif",
-                fontSize: "clamp(14px, 1.4vw, 16px)", fontWeight: 300,
-                color: "rgba(255,255,255,0.6)", lineHeight: 1.9,
-                margin: "0 0 1.8rem",
-              }}>{item.desc}</p>
-
-              {/* Tags */}
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "1.8rem" }}>
-                {item.tags.map(t => (
-                  <span key={t} style={{
-                    fontFamily: "'Tajawal', sans-serif", fontSize: "11px",
-                    color: "rgba(255,255,255,0.4)",
-                    background: "rgba(255,255,255,0.05)",
-                    padding: "3px 10px", borderRadius: "2px",
-                  }}>{t}</span>
-                ))}
-              </div>
-
-              {/* Price */}
-              <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
-                <span style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "clamp(28px, 3vw, 36px)", fontWeight: 700,
-                  color: item.color, lineHeight: 1,
-                }}>{item.price}</span>
-                <span style={{ fontFamily: "'Tajawal', sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.35)" }}>ريال سعودي / للشخص</span>
-              </div>
-
-              {/* Glow on hover */}
-              {active === item.id && (
-                <div style={{
-                  position: "absolute", bottom: 0, right: 0, left: 0,
-                  height: "2px",
-                  background: `linear-gradient(90deg, transparent, ${item.color}, transparent)`,
-                  opacity: 0.6,
-                }} />
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* View full menu CTA */}
-        <div style={{ textAlign: "center", marginTop: "4rem" }}>
-          <span style={{
-            fontFamily: "'Tajawal', sans-serif", fontSize: "15px",
-            color: "rgba(201,169,110,0.6)", letterSpacing: "0.05em",
-            borderBottom: "1px solid rgba(201,169,110,0.25)", paddingBottom: "2px",
-            cursor: "pointer", transition: "all 0.3s",
-          }}
-            onMouseEnter={e => e.target.style.color = "#C9A96E"}
-            onMouseLeave={e => e.target.style.color = "rgba(201,169,110,0.6)"}
-          >القائمة الكاملة متاحة عند الحجز ✦</span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ExperienceSection() {
-  const [ref, visible] = useInView();
-  const stats = [
-    { num: "٢٠١٩", label: "عام التأسيس" },
-    { num: "٩٨٪", label: "معدل رضا الضيوف" },
-    { num: "١٢", label: "شيف عالمي" },
-    { num: "٣", label: "جوائز دولية" },
-  ];
-  return (
-    <section id="experience" style={{
-      padding: "clamp(80px, 12vw, 140px) 2rem",
-      background: "linear-gradient(135deg, #0d0820 0%, #060412 100%)",
-      position: "relative", overflow: "hidden",
-    }}>
-      <div style={{
-        position: "absolute", right: "-5%", top: "10%",
-        width: "500px", height: "500px",
-        background: "radial-gradient(circle, rgba(201,169,110,0.05) 0%, transparent 70%)",
-        filter: "blur(50px)",
-      }} />
-
-      <div ref={ref} style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <div style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5rem", alignItems: "center",
-          opacity: visible ? 1 : 0, transition: "all 1s cubic-bezier(0.16,1,0.3,1)",
-        }} className="experience-grid">
-
-          <div>
-            <span style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "12px", color: "#C9A96E", letterSpacing: "0.45em",
-              display: "block", marginBottom: "1.5rem", opacity: 0.8
-            }}>OUR PHILOSOPHY</span>
-            <h2 style={{
-              fontFamily: "'Tajawal', sans-serif",
-              fontSize: "clamp(28px, 4vw, 48px)",
-              fontWeight: 800, color: "#fff", margin: "0 0 1.5rem", lineHeight: 1.3,
-            }}>ليس مجرد طعام.<br />إنه فنٌّ يُمارَس.</h2>
-            <p style={{
-              fontFamily: "'Tajawal', sans-serif",
-              fontSize: "clamp(15px, 1.5vw, 18px)", fontWeight: 300,
-              color: "rgba(255,255,255,0.55)", lineHeight: 2, marginBottom: "1.5rem"
-            }}>في سديم، نؤمن أن تناول الطعام تجربةٌ شاملة تمسّ الحواس الخمس. نعمل مع أفضل منتجي المكوّنات الأصيلة حول العالم، ونُجري عليها طقوس المطبخ الإبداعي الحديث.</p>
-            <p style={{
-              fontFamily: "'Tajawal', sans-serif",
-              fontSize: "clamp(15px, 1.5vw, 18px)", fontWeight: 300,
-              color: "rgba(255,255,255,0.55)", lineHeight: 2,
-            }}>كل طبق لدينا يمرّ بـ٧٢ ساعة من الإعداد والتجريب قبل أن يصل إلى طاولتك.</p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
-            {stats.map((s, i) => (
-              <div key={i} style={{
-                background: "rgba(255,255,255,0.025)", border: "1px solid rgba(201,169,110,0.1)",
-                borderRadius: "4px", padding: "2rem", textAlign: "center",
-                transition: `all 1s cubic-bezier(0.16,1,0.3,1) ${0.1 + i * 0.1}s`,
-                opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
-              }}>
-                <div style={{
-                  fontFamily: "'Tajawal', sans-serif",
-                  fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 900,
-                  color: "#C9A96E", lineHeight: 1, marginBottom: "0.5rem",
-                }}>{s.num}</div>
-                <div style={{
-                  fontFamily: "'Tajawal', sans-serif",
-                  fontSize: "13px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em"
-                }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <style>{`
-        @media (max-width: 768px) { .experience-grid { grid-template-columns: 1fr !important; gap: 3rem !important; } }
-      `}</style>
-    </section>
-  );
-}
-
-function TestimonialsSection() {
-  const [ref, visible] = useInView();
-  return (
-    <section id="testimonials" style={{
-      padding: "clamp(80px, 12vw, 140px) 2rem",
-      background: "#060412", position: "relative", overflow: "hidden",
-    }}>
-      <div style={{
-        position: "absolute", left: "50%", top: "0",
-        transform: "translateX(-50%)",
-        width: "600px", height: "300px",
-        background: "radial-gradient(ellipse, rgba(139,92,246,0.06) 0%, transparent 70%)",
-        filter: "blur(30px)",
-      }} />
-
-      <div ref={ref} style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-          <span style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "12px", color: "#C9A96E", letterSpacing: "0.45em",
-            display: "block", marginBottom: "1.2rem", opacity: 0.8
-          }}>TESTIMONIALS</span>
-          <h2 style={{
-            fontFamily: "'Tajawal', sans-serif",
-            fontSize: "clamp(28px, 4vw, 48px)",
-            fontWeight: 800, color: "#fff", margin: 0,
-          }}>ما قاله ضيوفنا</h2>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
-          {TESTIMONIALS.map((t, i) => (
-            <div key={i} style={{
-              background: "rgba(255,255,255,0.025)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              borderRadius: "4px", padding: "2.5rem",
-              transition: `all 0.9s cubic-bezier(0.16,1,0.3,1) ${i * 0.12}s`,
-              opacity: visible ? 1 : 0,
-              transform: visible ? "translateY(0)" : "translateY(30px)",
-              position: "relative",
-            }}>
-              {/* Opening quote */}
-              <div style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "60px", color: "rgba(201,169,110,0.12)",
-                position: "absolute", top: "10px", right: "20px",
-                lineHeight: 1, userSelect: "none",
-              }}>"</div>
-
-              <StarRating count={t.stars} />
-              <p style={{
-                fontFamily: "'Tajawal', sans-serif",
-                fontSize: "clamp(15px, 1.4vw, 17px)", fontWeight: 300,
-                color: "rgba(255,255,255,0.7)", lineHeight: 1.9,
-                margin: "1.2rem 0 1.8rem",
-              }}>{t.text}</p>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <div style={{
-                  width: "44px", height: "44px", borderRadius: "50%",
-                  background: "linear-gradient(135deg, #C9A96E, #8B5CF6)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: "'Tajawal', sans-serif", fontSize: "18px", fontWeight: 800,
-                  color: "#fff", flexShrink: 0,
-                }}>{t.avatar}</div>
-                <div>
-                  <div style={{ fontFamily: "'Tajawal', sans-serif", fontSize: "15px", fontWeight: 700, color: "#fff" }}>{t.name}</div>
-                  <div style={{ fontFamily: "'Tajawal', sans-serif", fontSize: "12px", color: "rgba(201,169,110,0.6)" }}>{t.title}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ReservationSection() {
-  const [ref, visible] = useInView();
-  const [form, setForm] = useState({ name: "", phone: "", date: "", time: "", guests: "2", occasion: "" });
-  const [status, setStatus] = useState(null); // null | 'loading' | 'success'
-
-  const times = ["١٨:٠٠", "١٨:٣٠", "١٩:٠٠", "١٩:٣٠", "٢٠:٠٠", "٢٠:٣٠", "٢١:٠٠", "٢١:٣٠", "٢٢:٠٠"];
-  const occasions = ["", "عشاء رومانسي", "احتفال بعيد ميلاد", "اجتماع أعمال", "حفل خطوبة", "تجمع عائلي", "أخرى"];
-
-  const handleSubmit = () => {
-    if (!form.name || !form.phone || !form.date || !form.time) return;
-    setStatus("loading");
-    setTimeout(() => setStatus("success"), 1800);
-  };
-
-  const inputStyle = {
-    width: "100%", background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: "3px", padding: "14px 16px",
-    color: "#fff", fontFamily: "'Tajawal', sans-serif",
-    fontSize: "15px", outline: "none", boxSizing: "border-box",
-    transition: "border-color 0.3s", direction: "rtl",
-  };
-
-  const labelStyle = {
-    fontFamily: "'Tajawal', sans-serif", fontSize: "13px",
-    color: "rgba(201,169,110,0.7)", display: "block",
-    marginBottom: "8px", letterSpacing: "0.03em",
-  };
-
-  return (
-    <section id="reservation" style={{
-      padding: "clamp(80px, 12vw, 140px) 2rem",
-      background: "linear-gradient(180deg, #060412 0%, #0a0618 100%)",
-      position: "relative", overflow: "hidden",
-    }}>
-      <div style={{
-        position: "absolute", right: "-5%", bottom: "10%",
-        width: "450px", height: "450px",
-        background: "radial-gradient(circle, rgba(201,169,110,0.05) 0%, transparent 70%)",
-        filter: "blur(50px)",
-      }} />
-
-      <div ref={ref} style={{ maxWidth: "700px", margin: "0 auto" }}>
-        <div style={{
-          textAlign: "center", marginBottom: "3.5rem",
-          opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(30px)",
-          transition: "all 0.9s cubic-bezier(0.16,1,0.3,1)",
-        }}>
-          <span style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "12px", color: "#C9A96E", letterSpacing: "0.45em",
-            display: "block", marginBottom: "1.2rem", opacity: 0.8
-          }}>RESERVATION — حجز الطاولة</span>
-          <h2 style={{
-            fontFamily: "'Tajawal', sans-serif",
-            fontSize: "clamp(28px, 4vw, 48px)",
-            fontWeight: 800, color: "#fff", margin: "0 0 1rem",
-          }}>ابدأ رحلتك معنا</h2>
-          <p style={{
-            fontFamily: "'Tajawal', sans-serif",
-            fontSize: "clamp(14px, 1.4vw, 17px)", fontWeight: 300,
-            color: "rgba(255,255,255,0.45)", lineHeight: 1.9,
-          }}>الطاولات محدودة — يُنصح بالحجز قبل ٤٨ ساعة على الأقل.</p>
-        </div>
-
-        {status === "success" ? (
-          <div style={{
-            background: "rgba(201,169,110,0.07)", border: "1px solid rgba(201,169,110,0.25)",
-            borderRadius: "4px", padding: "4rem", textAlign: "center",
-            opacity: visible ? 1 : 0, transition: "all 0.9s",
-          }}>
-            <div style={{ fontSize: "48px", marginBottom: "1.5rem" }}>✦</div>
-            <h3 style={{
-              fontFamily: "'Tajawal', sans-serif", fontSize: "28px",
-              fontWeight: 800, color: "#C9A96E", margin: "0 0 1rem",
-            }}>تم الحجز بنجاح</h3>
-            <p style={{
-              fontFamily: "'Tajawal', sans-serif", fontSize: "16px",
-              color: "rgba(255,255,255,0.55)", lineHeight: 1.9,
-            }}>سيتواصل معك فريق سديم لتأكيد تجربتك في غضون ساعة واحدة.</p>
-          </div>
-        ) : (
-          <div style={{
-            background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: "4px", padding: "clamp(2rem, 5vw, 3rem)",
-            opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
-            transition: "all 0.9s cubic-bezier(0.16,1,0.3,1) 0.15s",
-          }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }} className="form-grid">
-              {/* Name */}
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>الاسم الكريم *</label>
-                <input
-                  type="text" placeholder="أدخل اسمك الكريم"
-                  value={form.name}
-                  onChange={e => setForm({ ...form, name: e.target.value })}
-                  style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = "rgba(201,169,110,0.5)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
-                />
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label style={labelStyle}>رقم الجوال *</label>
-                <input
-                  type="tel" placeholder="+٩٦٦ ٥XX XXX XXX"
-                  value={form.phone}
-                  onChange={e => setForm({ ...form, phone: e.target.value })}
-                  style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = "rgba(201,169,110,0.5)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
-                />
-              </div>
-
-              {/* Guests */}
-              <div>
-                <label style={labelStyle}>عدد الضيوف *</label>
-                <select
-                  value={form.guests}
-                  onChange={e => setForm({ ...form, guests: e.target.value })}
-                  style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
-                  onFocus={e => e.target.style.borderColor = "rgba(201,169,110,0.5)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
-                >
-                  {["١", "٢", "٣", "٤", "٥", "٦"].map(n => <option key={n} value={n} style={{ background: "#0d0820" }}>ضيوف: {n}</option>)}
-                </select>
-              </div>
-
-              {/* Date */}
-              <div>
-                <label style={labelStyle}>تاريخ الزيارة *</label>
-                <input
-                  type="date"
-                  value={form.date}
-                  onChange={e => setForm({ ...form, date: e.target.value })}
-                  min={new Date().toISOString().split("T")[0]}
-                  style={{ ...inputStyle, colorScheme: "dark" }}
-                  onFocus={e => e.target.style.borderColor = "rgba(201,169,110,0.5)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
-                />
-              </div>
-
-              {/* Time */}
-              <div>
-                <label style={labelStyle}>وقت الحضور *</label>
-                <select
-                  value={form.time}
-                  onChange={e => setForm({ ...form, time: e.target.value })}
-                  style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
-                  onFocus={e => e.target.style.borderColor = "rgba(201,169,110,0.5)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
-                >
-                  <option value="" style={{ background: "#0d0820" }}>اختر الوقت</option>
-                  {times.map(t => <option key={t} value={t} style={{ background: "#0d0820" }}>{t} مساءً</option>)}
-                </select>
-              </div>
-
-              {/* Occasion */}
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>المناسبة (اختياري)</label>
-                <select
-                  value={form.occasion}
-                  onChange={e => setForm({ ...form, occasion: e.target.value })}
-                  style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
-                  onFocus={e => e.target.style.borderColor = "rgba(201,169,110,0.5)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
-                >
-                  {occasions.map(o => <option key={o} value={o} style={{ background: "#0d0820" }}>{o || "اختر المناسبة"}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              disabled={status === "loading"}
-              style={{
-                width: "100%", marginTop: "1.8rem",
-                background: status === "loading" ? "rgba(201,169,110,0.6)" : "#C9A96E",
-                color: "#060412", border: "none", borderRadius: "3px",
-                padding: "17px", fontFamily: "'Tajawal', sans-serif",
-                fontSize: "17px", fontWeight: 800, cursor: status === "loading" ? "not-allowed" : "pointer",
-                letterSpacing: "0.05em", transition: "all 0.3s",
-              }}
-              onMouseEnter={e => { if (status !== "loading") e.target.style.background = "#E8D5B0"; }}
-              onMouseLeave={e => { if (status !== "loading") e.target.style.background = "#C9A96E"; }}
-            >
-              {status === "loading" ? "جارٍ تأكيد حجزك..." : "تأكيد الحجز ✦"}
-            </button>
-
-            <p style={{
-              fontFamily: "'Tajawal', sans-serif", fontSize: "12px",
-              color: "rgba(255,255,255,0.25)", textAlign: "center", marginTop: "1rem",
-              lineHeight: 1.8,
-            }}>بالحجز، أنت توافق على سياسة الإلغاء الخاصة بنا. يُمكن الإلغاء مجاناً قبل ٢٤ ساعة.</p>
-          </div>
-        )}
-      </div>
-      <style>{`
-        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr !important; } .form-grid > div[style*="1 / -1"] { grid-column: 1 !important; } }
-      `}</style>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    <footer style={{
-      background: "#03020d",
-      borderTop: "1px solid rgba(201,169,110,0.1)",
-      padding: "3rem 2rem",
-    }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "2rem" }}>
-          <div>
-            <div style={{ fontFamily: "'Tajawal', sans-serif", fontSize: "24px", fontWeight: 800, color: "#C9A96E" }}>سديم</div>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "11px", color: "rgba(201,169,110,0.4)", letterSpacing: "0.3em" }}>NEBULA DINING</div>
-          </div>
-          <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
-            {["طريق الملك فهد، الرياض", "هاتف: ٩٢٠٠٠٠٠٠٠", "info@sadeemrestaurant.com"].map(info => (
-              <span key={info} style={{ fontFamily: "'Tajawal', sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.3)" }}>{info}</span>
-            ))}
-          </div>
-        </div>
-        <div style={{ height: "1px", background: "rgba(255,255,255,0.05)", margin: "2rem 0" }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-          <p style={{ fontFamily: "'Tajawal', sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.2)", margin: 0 }}>
-            © ٢٠٢٥ سديم. جميع الحقوق محفوظة.
-          </p>
-          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "11px", color: "rgba(201,169,110,0.3)", margin: 0, letterSpacing: "0.2em" }}>
-            CRAFTED WITH INTENTION
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-// ── Main App ─────────────────────────────────────────────────
-export default function App() {
-  return (
-    <>
-      {/* Global styles injected once */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;800;900&family=Cormorant+Garamond:wght@400;600;700&display=swap');
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html {
-          direction: rtl;
-          scroll-behavior: smooth;
-          -webkit-font-smoothing: antialiased;
+        
+        .nebula-bg {
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(201, 169, 110, 0.1) 0%, transparent 40%),
+                linear-gradient(to bottom, #060412, #0d0820);
         }
 
-        body {
-          background: #060412;
-          color: #fff;
-          overflow-x: hidden;
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
         }
 
-        ::selection { background: rgba(201,169,110,0.25); color: #fff; }
-        ::-webkit-scrollbar { width: 4px; }
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: rotate var(--rev) linear infinite;
+            pointer-events: none;
+        }
+        @keyframes rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* حركة السكرول (Scroll Reveal) اللي طلبتها */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #060412; }
-        ::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.3); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: #C9A96E; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-        input::placeholder, select option:first-child { color: rgba(255,255,255,0.25); }
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.4); cursor: pointer; }
-      `}</style>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-      <Navbar />
-      <main>
-        <HeroSection />
-        <MenuSection />
-        <ExperienceSection />
-        <TestimonialsSection />
-        <ReservationSection />
-      </main>
-      <Footer />
-    </>
-  );
-}
+        const BackgroundStars = () => {
+            const stars = Array.from({ length: 80 }).map((_, i) => ({
+                id: i,
+                left: Math.random() * 100 + '%',
+                top: Math.random() * 100 + '%',
+                size: Math.random() * 2 + 1 + 'px',
+                duration: 2 + Math.random() * 4 + 's'
+            }));
+            return (
+                <div className="fixed inset-0 pointer-events-none z-0">
+                    {stars.map(s => (
+                        <div key={s.id} className="star" style={{
+                            left: s.left, top: s.top, width: s.size, height: s.size, '--duration': s.duration
+                        }}></div>
+                    ))}
+                </div>
+            );
+        };
+
+        const MENU_ITEMS = [
+            { id: 1, name: "تغريدة الصحراء", nameEn: "Desert Whisper", price: "٢٨٥", desc: "فيليه جمل مُعتَّق في نبيذ التمر لـ ١٢ ساعة، يُرافقه رغوة الزعفران وحصاة الملح الوردي.", color: "#C9A96E", icon: "✦", tag: "الأكثر طلباً" },
+            { id: 2, name: "سيمفونية التوابل", nameEn: "Spice Symphony", price: "٣٤٠", desc: "روبيان هايلاند المُدخَّن بعود العرعر، في حضن صلصة الكاري الأزرق النادر ورقائق الذهب.", color: "#8B5CF6", icon: "◈", tag: "طبق الموسم" },
+            { id: 3, name: "لحظة الانهيار", nameEn: "The Collapse", price: "١٩٠", desc: "كرواسان شوكولاتة داكنة ٩٠٪ يذوب أمامك، تنبثق منه كريمة الفانيلا بوربون وعسل جبال الأطلس.", color: "#E11D48", icon: "⬡", tag: "حصري ليلاً" }
+        ];
+
+        // بيانات التعليقات اللي كانت ناقصة
+        const TESTIMONIALS = [
+            { name: "نورة المنصوري", title: "ناقدة طعام", text: "لم أشهد مطعمًا يُوازن بين الشعر والمذاق كما يفعل سديم. كل لقمة هي قصيدة تحكي قصة عبر المجرات.", avatar: "ن" },
+            { name: "د. فيصل الرشيدي", title: "رجل أعمال", text: "المكان ليس مجرد مطعم، بل هو رسالة فخامة. طاولتي كانت قاعة المجلس الأكثر تميزاً في الرياض.", avatar: "ف" }
+        ];
+
+        function App() {
+            const [scrolled, setScrolled] = useState(false);
+
+            // تفعيل حركة السكرول وتغيير شريط التنقل
+            useEffect(() => {
+                const handleScroll = () => setScrolled(window.scrollY > 50);
+                window.addEventListener('scroll', handleScroll);
+                
+                // مراقب العناصر لتفعيل الأنيميشن عند السكرول
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('active');
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+                return () => {
+                    window.removeEventListener('scroll', handleScroll);
+                    observer.disconnect();
+                };
+            }, []);
+
+            return (
+                <div className="nebula-bg min-h-screen relative">
+                    <BackgroundStars />
+                    
+                    {/* الملاحة */}
+                    <nav className={`fixed top-0 w-full z-50 transition-all duration-700 px-6 md:px-16 py-5 flex justify-between items-center ${scrolled ? 'bg-[#060412]/90 backdrop-blur-xl border-b border-[#C9A96E]/20' : 'bg-transparent'}`}>
+                        <div className="flex flex-col">
+                            <span className="text-[#C9A96E] font-black text-3xl tracking-tighter italic">سديم</span>
+                            <span className="text-[10px] tracking-[0.4em] opacity-40 uppercase font-serif">Nebula Dining</span>
+                        </div>
+                        <div className="hidden md:flex gap-12 text-[11px] font-bold tracking-[0.2em] opacity-60">
+                            <a href="#menu" className="hover:text-[#C9A96E] transition-all">القائمة</a>
+                            <a href="#experience" className="hover:text-[#C9A96E] transition-all">تجربتنا</a>
+                            <a href="#testimonials" className="hover:text-[#C9A96E] transition-all">التعليقات</a>
+                        </div>
+                        <a href="#reservation" className="bg-[#C9A96E] text-[#060412] px-8 py-3 text-xs font-black uppercase hover:bg-white transition-all shadow-xl shadow-[#C9A96E]/10">احجز الآن</a>
+                    </nav>
+
+                    {/* الواجهة */}
+                    <header className="relative h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+                        <div className="orbit w-[300px] h-[300px] md:w-[700px] md:h-[700px]" style={{'--rev': '50s'}}></div>
+                        <div className="orbit w-[250px] h-[250px] md:w-[500px] md:h-[500px]" style={{'--rev': '35s', animationDirection: 'reverse'}}></div>
+                        
+                        <div className="z-10 reveal active">
+                            <span className="text-[#C9A96E] text-[10px] tracking-[0.8em] mb-8 block opacity-60 uppercase">Riyadh's Finest Culinary Art</span>
+                            <h1 className="text-[80px] md:text-[160px] font-black leading-none mb-6 bg-gradient-to-b from-white via-[#E8D5B0] to-[#C9A96E] bg-clip-text text-transparent italic">سديم</h1>
+                            <p className="text-sm md:text-xl font-light opacity-50 max-w-2xl mx-auto leading-loose mb-12 tracking-wide">
+                                حيثُ لا يكتفي الطعام بإشباعك، بل يروي لك حكايةً من وحي المجرات.
+                            </p>
+                            <div className="flex gap-6 justify-center">
+                                <a href="#menu" className="bg-[#C9A96E] text-[#060412] px-12 py-5 font-black text-xs hover:scale-105 transition-all">استكشف القائمة</a>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* القائمة */}
+                    <section id="menu" className="py-40 px-6 max-w-7xl mx-auto relative z-10">
+                        <div className="text-center mb-24 reveal">
+                            <h2 className="text-5xl md:text-7xl font-black mb-6">مختارات السديم</h2>
+                            <div className="w-24 h-px bg-[#C9A96E] mx-auto opacity-40"></div>
+                        </div>
+                        <div className="grid lg:grid-cols-3 gap-10">
+                            {MENU_ITEMS.map((item, index) => (
+                                <div key={item.id} className="reveal group p-12 bg-white/[0.02] border border-white/5 hover:border-[#C9A96E]/40 transition-all duration-700 relative overflow-hidden backdrop-blur-md" style={{transitionDelay: `${index * 100}ms`}}>
+                                    <div className="text-4xl mb-10" style={{color: item.color}}>{item.icon}</div>
+                                    <span className="text-[10px] text-[#C9A96E] border border-[#C9A96E]/30 px-4 py-1.5 mb-6 inline-block tracking-widest uppercase">{item.tag}</span>
+                                    <h3 className="text-3xl font-bold mb-2">{item.name}</h3>
+                                    <p className="text-[11px] opacity-40 font-serif mb-6 tracking-[0.2em] uppercase">{item.nameEn}</p>
+                                    <p className="text-sm opacity-50 leading-loose mb-12 h-24">{item.desc}</p>
+                                    <div className="text-4xl font-black italic" style={{color: item.color}}>{item.price} <span className="text-xs font-normal opacity-30">ر.س</span></div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* التجربة */}
+                    <section id="experience" className="py-40 border-y border-white/5 bg-[#040310] relative z-10">
+                        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
+                            <div className="relative reveal">
+                                <div className="absolute -inset-4 border border-[#C9A96E]/20 rotate-3"></div>
+                                <div className="bg-[#C9A96E]/10 aspect-square border border-[#C9A96E]/20 flex items-center justify-center p-12 backdrop-blur-sm relative z-10">
+                                    <div className="text-center italic opacity-80 text-2xl font-serif text-[#C9A96E]">"فن الطهي هو لغة الكون"</div>
+                                </div>
+                            </div>
+                            <div className="reveal" style={{transitionDelay: "200ms"}}>
+                                <h3 className="text-[#C9A96E] text-xs font-bold tracking-[0.5em] mb-6 uppercase">فلسفتنا</h3>
+                                <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight text-white">طعامٌ يلمس الروح قبل الحواس.</h2>
+                                <p className="opacity-50 text-lg leading-relaxed mb-10">
+                                    كل طبق في "سديم" هو نتيجة شهور من البحث عن المكونات الأكثر ندرة، مدموجةً بتقنيات الطهي الجزيئي لتخرج لك في لوحة فنية مبهرة.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* التعليقات (آراء الضيوف) - تم إرجاعها */}
+                    <section id="testimonials" className="py-40 px-6 max-w-6xl mx-auto relative z-10">
+                        <div className="text-center mb-24 reveal">
+                            <h2 className="text-4xl md:text-6xl font-black mb-6">قالوا عن سديم</h2>
+                            <div className="w-16 h-px bg-[#C9A96E] mx-auto opacity-40"></div>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {TESTIMONIALS.map((t, i) => (
+                                <div key={i} className="reveal p-12 bg-white/[0.03] border border-white/5 relative backdrop-blur-sm" style={{transitionDelay: `${i * 200}ms`}}>
+                                    <div className="text-6xl absolute top-6 left-8 opacity-10 text-[#C9A96E]">"</div>
+                                    <p className="text-lg italic opacity-80 leading-relaxed mb-10">"{t.text}"</p>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C9A96E] to-[#8B5CF6] flex items-center justify-center font-bold text-xl">{t.avatar}</div>
+                                        <div>
+                                            <div className="font-bold text-sm text-[#C9A96E]">{t.name}</div>
+                                            <div className="text-[10px] opacity-40 uppercase mt-1 tracking-widest">{t.title}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* الحجز */}
+                    <section id="reservation" className="py-40 px-6 max-w-4xl mx-auto text-center relative z-10">
+                        <div className="mb-20 reveal">
+                            <h2 className="text-5xl font-black mb-4 italic">احجز رحلتك</h2>
+                            <p className="opacity-40 tracking-widest uppercase text-xs">Limited seating available nightly</p>
+                        </div>
+                        <form className="reveal grid grid-cols-1 md:grid-cols-2 gap-8 text-right bg-white/[0.02] p-12 border border-white/5 backdrop-blur-md">
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] uppercase opacity-40 mr-2">الاسم بالكامل</label>
+                                <input type="text" className="bg-transparent border-b border-white/10 p-4 focus:border-[#C9A96E] outline-none transition-all text-sm text-white"/>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] uppercase opacity-40 mr-2">رقم التواصل</label>
+                                <input type="tel" className="bg-transparent border-b border-white/10 p-4 focus:border-[#C9A96E] outline-none transition-all text-sm text-left text-white"/>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] uppercase opacity-40 mr-2">تاريخ الزيارة</label>
+                                <input type="date" className="bg-transparent border-b border-white/10 p-4 focus:border-[#C9A96E] outline-none transition-all text-sm opacity-50 text-white"/>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] uppercase opacity-40 mr-2">عدد الضيوف</label>
+                                <select className="bg-transparent border-b border-white/10 p-4 focus:border-[#C9A96E] outline-none transition-all text-sm opacity-50 text-white">
+                                    <option className="bg-[#060412]">٢ شخص</option>
+                                    <option className="bg-[#060412]">٤ أشخاص</option>
+                                    <option className="bg-[#060412]">طاولة ملكية (٦+)</option>
+                                </select>
+                            </div>
+                            <button type="button" className="md:col-span-2 mt-8 bg-gradient-to-r from-[#C9A96E] to-[#8B5CF6] text-[#060412] p-6 font-black uppercase tracking-[0.3em] hover:scale-[1.02] transition-all shadow-2xl shadow-[#C9A96E]/20">
+                                Confirm Reservation ✦
+                            </button>
+                        </form>
+                    </section>
+
+                    {/* التذييل */}
+                    <footer className="py-20 border-t border-white/5 text-center bg-[#03020d] relative z-10 reveal">
+                        <div className="mb-12">
+                            <div className="text-[#C9A96E] font-black text-4xl mb-2 italic">سديم</div>
+                            <div className="text-[10px] opacity-30 tracking-[0.5em] uppercase font-serif">A Galaxy of Flavors</div>
+                        </div>
+                        <p className="text-[9px] opacity-20 max-w-xs mx-auto leading-loose">
+                            © ٢٠٢٦ سديم | جميع الحقوق محفوظة. 
+                        </p>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
